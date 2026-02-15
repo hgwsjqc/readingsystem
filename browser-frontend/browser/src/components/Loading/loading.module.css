@@ -1,0 +1,48 @@
+/* loading.module.css - 三重保险居中方案 */
+.overlay {
+  position: fixed;
+  inset: 0; /* top:0;left:0;right:0;bottom:0 的简写 */
+  background-color: rgba(255, 255, 255, 0.92);
+  display: grid;
+  place-items: center; /* CSS Grid 终极居中 */
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.container {
+  position: relative;
+  width: 80px;
+  height: 80px;
+}
+
+.ball {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%); /* 精确居中到容器中心 */
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, #ef4444, #b91c1c);
+  opacity: 0.85;
+  animation: pulse 1.6s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+}
+
+.ball:nth-child(2) {
+  animation-delay: -0.8s;
+  background: radial-gradient(circle at 70% 70%, #f97316, #c2410c);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: translate(-50%, -50%) scale(0.15);
+    opacity: 0.3;
+    box-shadow: 0 0 0 rgba(239, 68, 68, 0);
+  }
+  50% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.6);
+  }
+}

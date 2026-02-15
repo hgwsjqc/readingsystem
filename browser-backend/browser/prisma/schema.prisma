@@ -1,0 +1,161 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int        @id @default(autoincrement())
+  name        String     @unique @db.VarChar(255)
+  password    String     @db.VarChar(255)
+  bio         String?    @db.Text 
+  createdAt   DateTime?  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime?  @default(now()) @map("updated_at") @db.Timestamptz(6)
+  posts       Post[]
+  comments    Comment[]
+  likes       UserLikePost[]
+  avatars     Avatar[]
+  files       File[]
+  books       UserBook[] 
+  @@map("users")
+}
+
+model Book {
+  id          Int        @id @default(autoincrement())
+  title       String     @db.VarChar(255)
+  author      String     @db.VarChar(255)
+  isbn        String?    @db.VarChar(30) // ISBN-13 最长 17 字符，留余量
+  description String?    @db.Text
+  publishedAt DateTime?  @map("published_at") @db.Date // 仅日期
+  coverFileId Int?       @unique @map("cover_file_id")
+  
+  coverFile   File?      @relation("BookToFile", fields: [coverFileId], references: [id], onDelete: SetNull)
+  users       UserBook[] // 通过中间表关联用户
+
+  createdAt   DateTime   @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime   @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("books")
+}
+
+model UserBook {
+  userId       Int
+  bookId       Int
+  isFinished   Boolean   @default(false)
+  currentPage  Int?      // 当前阅读页码（可选）
+  lastReadAt   DateTime? @map("last_read_at") @db.Timestamptz(6)
+
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book         Book      @relation(fields: [bookId], references: [id], onDelete: Cascade)
+
+  @@id([userId, bookId])
+  @@index([bookId])
+
+  @@map("user_books")
+}
+
+model Post {
+  id          Int        @id @default(autoincrement())
+  title       String     @db.VarChar(255)
+  content     String?    @db.Text
+  userId      Int?
+  user        User?      @relation(fields:[userId], references: [id], onDelete: SetNull)
+  comments    Comment[]
+  tags        PostTag[]
+  likes       UserLikePost[]
+  files       File[]
+  @@index([userId])
+  @@map("posts")
+}
+
+model Comment {
+  id          Int        @id @default(autoincrement())
+  content     String?    @db.Text
+  postId      Int
+  userId      Int
+  parentId    Int?
+
+  post        Post        @relation(fields: [postId], references: [id], onDelete:Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete:Cascade)
+  parent      Comment?    @relation("CommentToComment", fields:[parentId], references:[id], onDelete: Cascade)   
+  replies     Comment[]   @relation("CommentToComment")
+
+  @@index([postId])
+  @@index([userId])
+  @@index([parentId])
+  @@map("comments")
+}
+
+model Tag {
+  id        Int     @id @default(autoincrement())
+  name      String  @unique @db.VarChar(255)
+  posts     PostTag[]
+  @@map("tags")
+}
+
+model PostTag {
+  postId     Int
+  tagId      Int 
+  post       Post      @relation(fields: [postId], references: [id], onDelete: Cascade)  
+  tag        Tag       @relation(fields: [tagId], references: [id], onDelete: Cascade) 
+
+  @@id([postId, tagId]) 
+
+  @@index([tagId])
+
+  @@map("post_tags")  
+}
+
+model UserLikePost {
+  userId      Int
+  postId      Int 
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post        Post        @relation(fields: [postId], references: [id], onDelete: Cascade)
+  @@id([userId, postId])
+  @@index([postId])
+  @@map("user_like_posts")
+}
+
+model Avatar {
+  id          Int        @id @default(autoincrement())
+  mimetype    String     @db.VarChar(255)
+  filename    String     @db.VarChar(255)
+  size        Int
+  userId      Int 
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId])
+  @@map("avatars")
+}
+
+model File {
+  id           Int        @id @default(autoincrement())
+  originalname String     @db.VarChar(255)
+  mimetype     String     @db.VarChar(255)
+  filename     String     @db.VarChar(255)
+  size         Int
+  width        Int        @db.SmallInt
+  height       Int        @db.SmallInt
+  metadata     Json?
+
+  postId       Int?       @map("post_id")
+  userId       Int        @map("user_id")
+  bookId       Int?       @unique @map("book_id")  // 新增
+
+  post         Post?      @relation(fields: [postId], references: [id], onDelete: SetNull)
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  book         Book?      @relation("BookToFile")
+
+  @@index([postId])
+  @@index([userId])
+  @@index([bookId])
+  @@map("files")
+}
