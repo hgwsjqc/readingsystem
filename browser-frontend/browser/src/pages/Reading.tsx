@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import SlideShow from '@/components/SlideShow';
 import { useReadingStore } from '@/store/reading';
+import { useUserStore } from '@/store/useUserStore';
 import InfiniteScroll from '@/components/ui/InfiniteScroll';
 import { useNavigate } from 'react-router-dom';
 
@@ -31,6 +32,7 @@ export default function Reading() {
   
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const { isLogin } = useUserStore();
   const { books, loading, fetchBooks, addToBookshelf, hasMore, loadMore, setSearch, bookInBookshelf, fetchUserBooks } = useReadingStore();
   
   // 组件加载时获取书籍数据
@@ -39,9 +41,11 @@ export default function Reading() {
     console.log('组件加载，调用 fetchBooks()');
     fetchBooks();
     loadMore();
-    // 获取用户书架中的书籍，初始化 bookInBookshelf 状态
-    fetchUserBooks();
-  }, []);
+    // 只有登录用户才获取书架数据
+    if (isLogin) {
+      fetchUserBooks();
+    }
+  }, [isLogin]);
 
   // 处理搜索
   const handleSearch = (e: React.FormEvent) => {

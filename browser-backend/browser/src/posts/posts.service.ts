@@ -68,7 +68,7 @@ export class PostsService {
       tags: post.tags.map(t => t.tag.name),
       totalLikes: post._count.likes,
       totalComments: post._count.comments,
-      thumbnail: `http://localhost:3000/uploads/resized/${post.files[0]?.filename}-thumbnail.jpg` || ""
+      thumbnail: post.files[0]?.filename ? `http://localhost:3000/uploads/${post.files[0].filename}` : ""
     }))
     // const total = await this.prisma.post.count();
     // console.log(total, "---------")

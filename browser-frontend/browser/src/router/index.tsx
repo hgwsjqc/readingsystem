@@ -1,6 +1,7 @@
 import { lazy, Suspense } from 'react'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
 import Loading from '@/components/Loading';
+import ProtectedRoute from '@/components/ProtectedRoute';
 import MainLayout from '@/layouts/MainLayout';
 import { AliveScope } from 'react-activation';
 
@@ -34,28 +35,72 @@ export default function RouterConfig({children}: {children?: React.ReactNode}) {
            
             <Route path="/search" element={<Search />} />
             <Route path="/rag" element={<RAG />} />
-            <Route path="/git" element={<Git />} />
-            <Route path="/role-workshop" element={<RoleWorkshop />} />
-            <Route path="/smart-reading" element={<SmartReading />} />
+            <Route path="/git" element={
+              <ProtectedRoute>
+                <Git />
+              </ProtectedRoute>
+            } />
+            <Route path="/role-workshop" element={
+              <ProtectedRoute>
+                <RoleWorkshop />
+              </ProtectedRoute>
+            } />
+            <Route path="/smart-reading" element={
+              <ProtectedRoute>
+                <SmartReading />
+              </ProtectedRoute>
+            } />
             {/* Post 模块 */}
             <Route path="/post" element={<PostLayout />}>
               <Route path=":id" element={<PostDetail />}/>
-              <Route path="create" element={<CreatePost />}/>
+              <Route path="create" element={
+                <ProtectedRoute>
+                  <CreatePost />
+                </ProtectedRoute>
+              }/>
             </Route>
-            {/* 用户相关页面 */}
+            {/* 用户相关页面 - 都需要登录 */}
             <Route path="/my">
-              <Route path="articles" element={<MyArticles />} />
-              <Route path="comments" element={<MyComments />} />
-              <Route path="likes" element={<MyLikes />} />
+              <Route path="articles" element={
+                <ProtectedRoute>
+                  <MyArticles />
+                </ProtectedRoute>
+              } />
+              <Route path="comments" element={
+                <ProtectedRoute>
+                  <MyComments />
+                </ProtectedRoute>
+              } />
+              <Route path="likes" element={
+                <ProtectedRoute>
+                  <MyLikes />
+                </ProtectedRoute>
+              } />
             </Route>
             {/* 布局组件 */}
             <Route path="/" element={<MainLayout/>}>
               <Route path="" element={<Home />} />
-              <Route path="reading" element={<Reading />} />
-              <Route path="reading/search" element={<ReadingSearch />} />
-              <Route path="reading/:id" element={<BookDetail />} />
+              <Route path="reading" element={
+                <ProtectedRoute>
+                  <Reading />
+                </ProtectedRoute>
+              } />
+              <Route path="reading/search" element={
+                <ProtectedRoute>
+                  <ReadingSearch />
+                </ProtectedRoute>
+              } />
+              <Route path="reading/:id" element={
+                <ProtectedRoute>
+                  <BookDetail />
+                </ProtectedRoute>
+              } />
               <Route path="chat" element={<Chat />} />
-              <Route path="mine" element={<Mine />} />
+              <Route path="mine" element={
+                <ProtectedRoute>
+                  <Mine />
+                </ProtectedRoute>
+              } />
             </Route>
           </Routes>
         </Suspense>

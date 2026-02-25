@@ -3,6 +3,7 @@ import { Search, ArrowLeft } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useReadingStore } from '@/store/reading';
+import { useUserStore } from '@/store/useUserStore';
 import InfiniteScroll from '@/components/ui/InfiniteScroll';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
@@ -16,13 +17,18 @@ export default function ReadingSearch() {
   const [searchParams] = useSearchParams();
   const urlSearchQuery = searchParams.get('query') || '';
   const [inputValue, setInputValue] = useState(urlSearchQuery);
-  const { books, loading, fetchBooks, addToBookshelf, hasMore, loadMore } = useReadingStore();
+  const { isLogin } = useUserStore();
+  const { books, loading, fetchBooks, addToBookshelf, hasMore, loadMore, fetchUserBooks } = useReadingStore();
   
   // 组件加载时获取搜索结果
   useEffect(() => {
     console.log('搜索页面加载，调用 fetchBooks()', urlSearchQuery);
     fetchBooks(urlSearchQuery, 1);
-  }, [urlSearchQuery]);
+    // 只有登录用户才获取书架数据
+    if (isLogin) {
+      fetchUserBooks();
+    }
+  }, [urlSearchQuery, isLogin]);
 
   // 处理搜索
   const handleSearch = (e: React.FormEvent) => {

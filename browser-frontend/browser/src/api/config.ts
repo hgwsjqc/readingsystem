@@ -79,8 +79,14 @@ instance.interceptors.response.use(res => {
         // 当前请求
         config.headers.Authorization = `Bearer ${access_token}`;
         return instance(config);
+      } else {
+        // 没有 refreshToken，直接登出
+        useUserStore.getState().logout();
+        window.location.href='/login';
+        return Promise.reject(err);
       }
     } catch(err) {
+      // refresh token 失败，清除用户状态
       useUserStore.getState().logout();
       window.location.href='/login';
       return Promise.reject(err);

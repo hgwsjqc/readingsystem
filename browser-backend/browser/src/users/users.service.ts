@@ -125,7 +125,7 @@ export class UsersService {
       totalLikes: post._count.likes,
       totalComments: post._count.comments,
       viewCount: 0,
-      thumbnail: `http://localhost:3000/uploads/resized/${post.files[0]?.filename}-thumbnail.jpg` || "",
+      thumbnail: post.files[0]?.filename ? `http://localhost:3000/uploads/${post.files[0].filename}` : "",
       createdAt: new Date().toISOString()
     }));
 
