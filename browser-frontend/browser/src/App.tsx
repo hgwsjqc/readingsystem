@@ -6,7 +6,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import BackToTop from '@/components/BackToTop';
 
 // 需要登录才能访问的路径
-export const needsLoginPath = ['/mine', '/chat']; // 假设“发现”和“首页”无需登录，“订单”已移除
+export const needsLoginPath = ['/mine', '/chat','/reading']; // 假设“发现”和“首页”无需登录，“订单”已移除
 
 function App() {
   const { isLogin } = useUserStore();

@@ -11,6 +11,7 @@ const instance = axios.create({
  
 instance.interceptors.request.use(config => {
   const  token  = useUserStore.getState().accessToken;
+  // console.log(token,'token');
   // console.log(token, '????');
   // 
   // console.log(store, '/////////');
@@ -67,7 +68,7 @@ instance.interceptors.response.use(res => {
         const { access_token, refresh_token} = await instance.post('/auth/refresh', {
           refresh_token: refreshToken
         })
-        // console.log(res, "?????????????????");
+        console.log(access_token, refresh_token, "?????????????????");
         useUserStore.setState({
           accessToken: access_token,
           refreshToken: refresh_token,
@@ -83,6 +84,7 @@ instance.interceptors.response.use(res => {
         // 没有 refreshToken，直接登出
         useUserStore.getState().logout();
         window.location.href='/login';
+        console.log(err, "401 无 refreshToken");
         return Promise.reject(err);
       }
     } catch(err) {

@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import {
   doLogin,
+  doRegister,
   getAiAvatar
 } from '@/api/user'
 import type { User } from '@/types/index'
@@ -14,6 +15,7 @@ interface UserState {
   user: User | null;
   isLogin: boolean;
   login: (credentials: Credentail) => Promise<void>;
+  register: (credentials: Credentail) => Promise<void>;
   aiAvatar: () => Promise<void>;
   logout: () => void;
   updateUser: (userData: any) => void;
@@ -34,13 +36,16 @@ export const useUserStore = create<UserState>()(
         refresh_token,
         user
       } = res;
-      // console.log(user, access_token, refresh_token)
+      console.log(user, access_token, refresh_token)
       set({
         user,
         accessToken: access_token,
         refreshToken: refresh_token,
         isLogin: true
       })
+    },
+    register: async ({ name, password }) => {
+      await doRegister({name, password});
     },
     aiAvatar: async () => {
       // coze title desc 生成应用的logo

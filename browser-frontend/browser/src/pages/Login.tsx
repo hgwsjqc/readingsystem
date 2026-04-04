@@ -14,16 +14,27 @@ import { Loader2 } from 'lucide-react';
 import type { Credentail } from '@/types';
 import {
   useNavigate
-} from 'react-router-dom'
+} from 'react-router-dom';
+import Notification from '@/components/Notification';
 
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useUserStore();
+  const { login, register } = useUserStore();
   const [loading, setLoading] = useState<boolean>(false);
+  const [isRegister, setIsRegister] = useState<boolean>(false);
   const [formData, setFormData] = useState<Credentail>({
     name: "",
     password: ""
-  })
+  });
+  const [notification, setNotification] = useState<{
+    show: boolean;
+    message: string;
+    type: 'success' | 'error' | 'info';
+  }>({
+    show: false,
+    message: '',
+    type: 'info'
+  });
   const handleChange  = (e:React.ChangeEvent<HTMLInputElement>) => {
     const { id, value} = e.target;
     setFormData((prev) => ({
@@ -32,31 +43,50 @@ export default function Login() {
     }));
   }
 
-  const handleLogin = async (e:React.FormEvent) => {
+  const handleSubmit = async (e:React.FormEvent) => {
     e.preventDefault();
     const name = formData.name.trim();
     const password = formData.password.trim();
     if (!name || !password) return ;
     setLoading(true);
     try{
-      await login({name, password});
-      // 登录丛history中移除
-      navigate("/", { replace: true })
-    } catch(err) {
-      console.log(err, "登录失败")
+      if (isRegister) {
+        await register({name, password});
+        setNotification({
+          show: true,
+          message: '注册成功，请登录',
+          type: 'success'
+        });
+        setIsRegister(false);
+      } else {
+        await login({name, password});
+        // 登录丛history中移除
+        navigate("/", { replace: true })
+      }
+    } catch(err: any) {
+      console.log(err, isRegister ? "注册失败" : "登录失败")
+      setNotification({
+        show: true,
+        message: err.response?.data?.message || (isRegister ? "注册失败" : "登录失败"),
+        type: 'error'
+      });
     } finally {
       setLoading(false);
     }
 
+  }
+
+  const handleCloseNotification = () => {
+    setNotification(prev => ({ ...prev, show: false }));
   }
   return (
     <div className="min-h-screen flex flex-col items-center 
     justify-center p-6 bg-white">
       <div className="w-full max-w-sm space-y-6">
         <div className="space-y-2 text-center">
-          <h1 className="text-3xl font-bold">登录</h1>
+          <h1 className="text-3xl font-bold">{isRegister ? '注册' : '登录'}</h1>
         </div>
-        <form onSubmit={handleLogin} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             {/* 无障碍访问  for + id  for 关键字, react htmlFor */}
             <Label htmlFor="name">用户名</Label>
@@ -80,14 +110,28 @@ export default function Login() {
           </div>
           <Button>
           {loading?(<><Loader2 className="mr-2 h-4 w-4 animate-spin"/>
-          登录中...
+          {isRegister ? '注册中...' : '登录中...'}
           </>)
-          :('立即登录')}
+          : isRegister ? '立即注册' : '立即登录'
+          }
           </Button>
         </form>
-        <Button variant="ghost" className="w-full" 
-        onClick={() => navigate("/")}>暂不登录，回首页</Button>
+        <div className="flex flex-col space-y-2">
+          <Button variant="ghost" className="w-full" 
+          onClick={() => setIsRegister(!isRegister)}>
+            {isRegister ? '已有账号？去登录' : '没有账号？去注册'}
+          </Button>
+          <Button variant="ghost" className="w-full" 
+          onClick={() => navigate("/")}>暂不登录，回首页</Button>
+        </div>
       </div>
+      {notification.show && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={handleCloseNotification}
+        />
+      )}
     </div>
   )
 }

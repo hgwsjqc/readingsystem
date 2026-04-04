@@ -10,7 +10,7 @@ export class ReadingController {
   // 获取书籍列表
   @Get()
   async getBooks(@Query() query: BookQueryDto) {
-    console.log(query);
+    // console.log(query);
     return this.readingService.getBooks(query);
   }
 
