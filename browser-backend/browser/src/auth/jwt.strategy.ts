@@ -19,9 +19,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   // JWT  用户对象
   // 需要重写
   async validate(payload) {
-    // console.log(payload);
     return {
-      id: parseInt(payload.sub, 10),
+      id: payload.sub as number,
       name: payload.name
     }
   }

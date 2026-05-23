@@ -32,12 +32,7 @@ export class AuthService {
     if(!user || !(await bcrypt.compare(password, user.password))) {
       throw new UnauthorizedException('用户名或密码错误')
     }
-    console.log(user);
-    // hased password 比对？
-
-    // 颁发token
-    // 模块化分离， 业务专注
-    const tokens = await this.generateTokens(user.id.toString(), user.name);
+    const tokens = await this.generateTokens(user.id, user.name);
     return {
       ...tokens,
       user:{
@@ -48,39 +43,36 @@ export class AuthService {
   }
   async refreshToken(rt: string) {
     try {
-      // decode 
       const payload = await this.jwtService.verifyAsync(rt, {
-        secret:process.env.TOKEN_SECRET
+        secret: process.env.TOKEN_SECRET
       });
-      console.log(payload, "??????");
+      if (payload.type !== 'refresh') {
+        throw new UnauthorizedException('无效的 Refresh Token');
+      }
       return this.generateTokens(payload.sub, payload.name);
     } catch(e) {
       throw new UnauthorizedException('Refresh Token 已失效，请重新登录')
     }
   }
   // OOP private 方法 复杂度剥离
-  private async generateTokens(id: string, name: string) {
-    // 用户信息关键 JSON Object 
-    // 马上用于签发token, 发令枪先装填弹药（payload），生成token,先要准备用户对象一样
+  private async generateTokens(id: number, name: string) {
     const payload = {
-      sub: id, // subject 主题 JWT 中规定的 关键字端
+      sub: id,
       name
     };
 
     const [at, rt] = await Promise.all([
-      // 颁发了两个token  access_token
       this.jwtService.signAsync(payload, {
-        expiresIn: '1m', // 有效期 15分钟 更安全 被中间人攻击
+        expiresIn: '15m',
         secret: process.env.TOKEN_SECRET
       }),
-      // refresh_token  刷新
-      // 7d 服务器接受我们，用于refresh 
-      // 服务器再次生成两个token 给我们
-      // 依然使用 15m token 请求 
-      this.jwtService.signAsync(payload, {
-        expiresIn: '7d',
-        secret: process.env.TOKEN_SECRET
-      }),
+      this.jwtService.signAsync(
+        { ...payload, type: 'refresh' },
+        {
+          expiresIn: '7d',
+          secret: process.env.TOKEN_SECRET
+        }
+      ),
     ])
     return {
       access_token: at,

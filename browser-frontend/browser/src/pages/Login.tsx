@@ -26,6 +26,7 @@ export default function Login() {
     name: "",
     password: ""
   });
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [notification, setNotification] = useState<{
     show: boolean;
     message: string;
@@ -48,10 +49,19 @@ export default function Login() {
     const name = formData.name.trim();
     const password = formData.password.trim();
     if (!name || !password) return ;
+    if (isRegister && password !== confirmPassword) {
+      setNotification({
+        show: true,
+        message: '两次密码输入不一致',
+        type: 'error'
+      });
+      return;
+    }
     setLoading(true);
     try{
       if (isRegister) {
         await register({name, password});
+        setConfirmPassword('');
         setNotification({
           show: true,
           message: '注册成功，请登录',
@@ -100,7 +110,7 @@ export default function Login() {
           <div className="space-y-2">
             {/* 无障碍访问  for + id  for 关键字, react htmlFor */}
             <Label htmlFor="password">密码</Label>
-            <Input 
+            <Input
               id="password"
               placeholder="请输入密码"
               type="password"
@@ -108,6 +118,18 @@ export default function Login() {
               onChange={handleChange}
             />
           </div>
+          {isRegister && (
+            <div className="space-y-2">
+              <Label htmlFor="confirmPassword">确认密码</Label>
+              <Input
+                id="confirmPassword"
+                placeholder="请再次输入密码"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+              />
+            </div>
+          )}
           <Button>
           {loading?(<><Loader2 className="mr-2 h-4 w-4 animate-spin"/>
           {isRegister ? '注册中...' : '登录中...'}

@@ -24,24 +24,27 @@ export default [
         }
       }
 
-      const token = jwt.sign({
-        user: { // json 对象
-          id: 1,
-          name: "admin",
-          avatar: "https://p9-passport.byteacctimg.com/img/user-avatar/09aff03aaa33dd9d311511bcbd12535f~50x50.awebp"
-        }
-      // 加盐
+      const access_token = jwt.sign({
+        sub: 1,
+        name: "admin"
       }, secret, {
-        expiresIn: 86400*7  // 有效时间
+        expiresIn: '15m'
       })
 
-      console.log(token, "////////");
+      const refresh_token = jwt.sign({
+        sub: 1,
+        name: "admin",
+        type: 'refresh'
+      }, secret, {
+        expiresIn: '7d'
+      })
+
       return {
-        token,
+        access_token,
+        refresh_token,
         user: {
           id: 1,
-          name: "admin",
-          avatar: "https://p9-passport.byteacctimg.com/img/user-avatar/09aff03aaa33dd9d311511bcbd12535f~50x50.awebp"
+          name: "admin"
         }
       }
     }
@@ -54,10 +57,12 @@ export default [
       // console.log(token);
       try {
         const decode = jwt.decode(token, secret);
-        console.log(decode)
         return {
           code: 200,
-          user: decode.user
+          user: {
+            id: decode.sub,
+            name: decode.name
+          }
         }
       } catch(err) {
         return {

@@ -1,17 +1,30 @@
-// input handleChange handleSubmit 
-// messages  
-// mockjs /api/chat 流式输出
-// chat 业务 
-import {
-  useChat
-} from '@ai-sdk/react';
+import { useChat } from '@ai-sdk/react';
+import { TextStreamChatTransport, type UIMessage } from 'ai';
+
+function toBackendMessages(messages: UIMessage[]) {
+  return messages.map((message) => ({
+    role: message.role,
+    content: message.parts
+      .filter((part) => part.type === 'text')
+      .map((part) => part.text)
+      .join(''),
+  }));
+}
 
 export const useChatbot = () => {
   return useChat({
-    // api: '/api/ai/chat',
-    api: 'https://localhost:3000/api/ai/chat',
+    transport: new TextStreamChatTransport({
+      api: 'http://localhost:3000/api/ai/chat',
+      prepareSendMessagesRequest: ({ id, messages, body }) => ({
+        body: {
+          ...(body ?? {}),
+          id,
+          messages: toBackendMessages(messages),
+        },
+      }),
+    }),
     onError: (err) => {
-      console.error("Chat Error:", err);
-    }
-  })
-}
+      console.error('Chat Error:', err);
+    },
+  });
+};

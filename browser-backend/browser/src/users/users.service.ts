@@ -12,7 +12,6 @@ export class UsersService {
   }
   async register(createUserDto: CreateUserDto) {
     const { name, password } = createUserDto;
-    console.log(name, "--------");
     const existingUser = await this.prisma.user.findUnique({
       where: {
         name
@@ -27,9 +26,6 @@ export class UsersService {
     }
     // 10 加密算法的强度 
     const hashedPassword = await bcrypt.hash(password, 10);
-    // console.log(hashedPassword, hashedPassword.length);
-    // console.log(await bcrypt.hash("123456", 10));
-    // console.log(await bcrypt.compare())
     const user = await this.prisma.user.create({
       data: {
         name,
@@ -44,14 +40,11 @@ export class UsersService {
     return user
   }
 
-  async getUserStats(userId: any) {
-    // 确保 userId 是数字类型
-    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
-    
+  async getUserStats(userId: number) {
     const [articles, comments, likes] = await Promise.all([
-      this.prisma.post.count({ where: { userId: numericUserId } }),
-      this.prisma.comment.count({ where: { userId: numericUserId } }),
-      this.prisma.userLikePost.count({ where: { userId: numericUserId } })
+      this.prisma.post.count({ where: { userId } }),
+      this.prisma.comment.count({ where: { userId } }),
+      this.prisma.userLikePost.count({ where: { userId } })
     ]);
 
     return {
@@ -61,15 +54,12 @@ export class UsersService {
     };
   }
 
-  async getUserArticles(userId: any, page: number = 1, limit: number = 10) {
-    // 确保 userId 是数字类型
-    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
-    
+  async getUserArticles(userId: number, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
     const [total, posts] = await Promise.all([
-      this.prisma.post.count({ where: { userId: numericUserId } }),
+      this.prisma.post.count({ where: { userId } }),
       this.prisma.post.findMany({
-        where: { userId: numericUserId },
+        where: { userId },
         skip,
         take: limit,
         orderBy: { id: 'desc' },
@@ -135,24 +125,19 @@ export class UsersService {
     };
   }
 
-  async updateUserProfile(userId: any, updateData: { name?: string; bio?: string }) {
-    // 确保 userId 是数字类型
-    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
-    
-    // 检查用户名是否已存在
+  async updateUserProfile(userId: number, updateData: { name?: string; bio?: string }) {
     if (updateData.name) {
       const existingUser = await this.prisma.user.findUnique({
         where: { name: updateData.name }
       });
-      
-      if (existingUser && existingUser.id !== numericUserId) {
+
+      if (existingUser && existingUser.id !== userId) {
         throw new BadRequestException("用户名已存在");
       }
     }
-    
-    // 更新用户信息
+
     return this.prisma.user.update({
-      where: { id: numericUserId },
+      where: { id: userId },
       data: updateData,
       select: {
         id: true,
@@ -167,15 +152,12 @@ export class UsersService {
     });
   }
 
-  async getUserComments(userId: any, page: number = 1, limit: number = 10) {
-    // 确保 userId 是数字类型
-    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
-    
+  async getUserComments(userId: number, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
     const [total, comments] = await Promise.all([
-      this.prisma.comment.count({ where: { userId: numericUserId } }),
+      this.prisma.comment.count({ where: { userId } }),
       this.prisma.comment.findMany({
-        where: { userId: numericUserId },
+        where: { userId },
         skip,
         take: limit,
         orderBy: { id: 'desc' },
@@ -207,15 +189,12 @@ export class UsersService {
     };
   }
 
-  async getUserLikes(userId: any, page: number = 1, limit: number = 10) {
-    // 确保 userId 是数字类型
-    const numericUserId = typeof userId === 'string' ? parseInt(userId, 10) : userId;
-    
+  async getUserLikes(userId: number, page: number = 1, limit: number = 10) {
     const skip = (page - 1) * limit;
     const [total, likes] = await Promise.all([
-      this.prisma.userLikePost.count({ where: { userId: numericUserId } }),
+      this.prisma.userLikePost.count({ where: { userId } }),
       this.prisma.userLikePost.findMany({
-        where: { userId: numericUserId },
+        where: { userId },
         skip,
         take: limit,
         include: {

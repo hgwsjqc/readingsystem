@@ -21,13 +21,13 @@ export class AIController{
     //   chatDto
     // }
     // 流式输出
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache'); // 每次llm 重新生成
-    res.setHeader('Connection', 'keep-alive'); // 保持连接
+    res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
 
     try { 
       await this.aiService.chat(chatDto.messages, (token: string) => {
-        res.write(`0:${JSON.stringify(token)}\n`);
+        res.write(token);
       })
       res.end();
     } catch(err) {
